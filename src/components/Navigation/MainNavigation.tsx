@@ -10,25 +10,25 @@ interface MainNavigationProps {}
 const MainNavigation: React.FC<MainNavigationProps> = (props) => {
 	const [drawerIsOpened, setDrawerIsOpened] = useState(false);
 
-	const openDrawer = () => {
+	const openDrawerHandler = () => {
 		setDrawerIsOpened(true);
 	};
 
-	const closeDrawer = () => {
+	const closeDrawerHandler = () => {
 		setDrawerIsOpened(false);
 	};
 	return (
 		<React.Fragment>
-			{drawerIsOpened && <BackDrop onClick={closeDrawer} />}
-			{drawerIsOpened && (
-				<SideDrawer>
-					<nav className='main-navigation_drawer-nav'>
-						<NavLinks />
-					</nav>
-				</SideDrawer>
-			)}
+			{drawerIsOpened && <BackDrop onClick={closeDrawerHandler} />}
+
+			<SideDrawer onCLick={closeDrawerHandler} show={drawerIsOpened}>
+				<nav className='main-navigation_drawer-nav'>
+					<NavLinks />
+				</nav>
+			</SideDrawer>
+
 			<MainHeader>
-				<button className='main-navigation__menu-btn' onClick={openDrawer}>
+				<button className='main-navigation__menu-btn' onClick={openDrawerHandler}>
 					<span />
 					<span />
 					<span />
