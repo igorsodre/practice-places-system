@@ -12,5 +12,5 @@ export interface IPlaceItem {
 	description: string;
 	address: string;
 	creator: string;
-	locations: { lat: number; long: number };
+	locations: { lat: number; lng: number };
 }
