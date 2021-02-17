@@ -8,7 +8,7 @@ interface MapProps {
 	style?: React.CSSProperties;
 }
 const Map: React.FC<MapProps> = ({ className, center, zoom, style }) => {
-	const mapRef = useRef<HTMLDivElement>(undefined as any);
+	const mapRef = useRef<HTMLDivElement>(null as any);
 
 	useEffect(() => {
 		const map = new google.maps.Map(mapRef.current!, {

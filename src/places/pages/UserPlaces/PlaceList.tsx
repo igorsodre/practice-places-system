@@ -15,7 +15,7 @@ const _renderPlaceItem = (item: IPlaceItem): JSX.Element => {
 	const openMapHandler = () => setShowMap(true);
 	const closeMapHandler = () => setShowMap(false);
 
-	const { address, title, locations, imageUrl, id, description, creator } = item;
+	const { address, title, locations, imageUrl, id, description } = item;
 	return (
 		<React.Fragment key={id}>
 			<Modal
