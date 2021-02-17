@@ -14,3 +14,9 @@ export interface IPlaceItem {
 	creator: string;
 	locations: { lat: number; lng: number };
 }
+
+export interface IValidatorResponse {
+	type: string;
+	payload?: string | number;
+}
+export type IValidator = (val?: string) => IValidatorResponse;

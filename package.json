@@ -12,6 +12,7 @@
     "@types/react-dom": "^17.0.0",
     "@types/react-router-dom": "^5.1.7",
     "node-sass": "^5.0.0",
+    "ramda": "^0.27.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-router-dom": "^5.2.0",
@@ -46,6 +47,7 @@
   },
   "devDependencies": {
     "@types/google.maps": "^3.43.0",
+    "@types/ramda": "^0.27.38",
     "@types/react-transition-group": "^4.4.0"
   }
 }
