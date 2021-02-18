@@ -19,4 +19,4 @@ export interface IValidatorResponse {
 	type: string;
 	payload?: string | number;
 }
-export type IValidator = (val?: string) => IValidatorResponse;
+export type IValidator = (val?: string | number) => IValidatorResponse;

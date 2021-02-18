@@ -1,4 +1,4 @@
-import React, { useReducer } from 'react';
+import React, { useEffect, useReducer } from 'react';
 import * as R from 'ramda';
 import { IValidatorResponse } from '../../typescript';
 import { validate } from '../../util/validators';
@@ -54,10 +54,17 @@ interface InputProps {
 	element?: 'input' | 'textarea';
 	errorText?: string;
 	validators: IValidatorResponse[];
+	onInput: (id: string, value: string, isValid: boolean) => void;
 }
 
-const Input: React.FC<InputProps> = ({ id, element, label, type, placeholder, rows = 3, className, errorText, validators }) => {
+const Input: React.FC<InputProps> = ({ id, element, label, type, placeholder, rows = 3, className, errorText, validators, onInput }) => {
 	const [inputState, dispatch] = useReducer(InputReducer, { value: '', isValid: false, isTouched: false });
+
+	const { value, isValid } = inputState;
+	useEffect(() => {
+		onInput(id, value, isValid);
+	}, [id, value, isValid, onInput]);
+
 	const changehandler = ({ target: { value } }: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 		dispatch({ payload: value, type: CHANGE_ACTION, validators });
 	};
