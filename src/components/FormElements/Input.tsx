@@ -45,6 +45,8 @@ const InputReducer: IReducer = (state, action) => {
 };
 
 interface InputProps {
+	initialValue?: string;
+	initialValidity?: boolean;
 	className?: string;
 	label?: string;
 	id: string;
@@ -57,8 +59,8 @@ interface InputProps {
 	onInput: (id: string, value: string, isValid: boolean) => void;
 }
 
-const Input: React.FC<InputProps> = ({ id, element, label, type, placeholder, rows = 3, className, errorText, validators, onInput }) => {
-	const [inputState, dispatch] = useReducer(InputReducer, { value: '', isValid: false, isTouched: false });
+const Input: React.FC<InputProps> = ({ initialValue: inputValue, initialValidity: valid, id, element, label, type, placeholder, rows = 3, className, errorText, validators, onInput }) => {
+	const [inputState, dispatch] = useReducer(InputReducer, { value: inputValue || '', isValid: valid || false, isTouched: false });
 
 	const { value, isValid } = inputState;
 	useEffect(() => {

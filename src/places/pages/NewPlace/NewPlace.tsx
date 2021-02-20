@@ -1,4 +1,4 @@
-import React, { FormEvent } from 'react';
+import React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Button from '../../../components/FormElements/Button';
 import Input from '../../../components/FormElements/Input';
@@ -27,6 +27,10 @@ class NewPlace extends React.Component<NewPlaceProps, NewPlaceState> {
 					isValid: false
 				},
 				title: {
+					value: '',
+					isValid: false
+				},
+				address: {
 					value: '',
 					isValid: false
 				}
@@ -71,6 +75,14 @@ class NewPlace extends React.Component<NewPlaceProps, NewPlaceState> {
 					label='Description'
 					validators={[VALIDATOR_MINLENGTH(5)]}
 					errorText='Please enter a valid description (at least 5 characters).'
+					onInput={this.inputHandler}
+				/>
+				<Input
+					element='input'
+					id='address'
+					label='Address'
+					validators={[VALIDATOR_REQUIRE()]}
+					errorText='Please enter a valid address.'
 					onInput={this.inputHandler}
 				/>
 				<Button type='submit' disabled={!this.state.isValid}>
