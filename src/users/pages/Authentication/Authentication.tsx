@@ -3,7 +3,8 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Button from '../../../components/FormElements/Button';
 import Input from '../../../components/FormElements/Input';
 import Card from '../../../components/UI/Card';
-import { VALIDATOR_EMAIL, VALIDATOR_MINLENGTH } from '../../../util/validators';
+import AuthContext from '../../../data/auth-context';
+import { VALIDATOR_EMAIL, VALIDATOR_MINLENGTH, VALIDATOR_REQUIRE } from '../../../util/validators';
 import './Authentication.scss';
 
 interface RouteProps {}
@@ -16,8 +17,11 @@ interface AuthenticationState {
 		};
 	};
 	isValid: boolean;
+	isLoginMode: boolean;
 }
 class Authentication extends React.Component<AuthenticationProps, AuthenticationState> {
+	static contextType = AuthContext;
+	context!: React.ContextType<typeof AuthContext>;
 	constructor(props: AuthenticationProps) {
 		super(props);
 		this.state = {
@@ -31,14 +35,24 @@ class Authentication extends React.Component<AuthenticationProps, Authentication
 					isValid: false
 				}
 			},
-			isValid: false
+			isValid: false,
+			isLoginMode: true
 		};
 	}
+
+	switchModeHandler = () => {
+		const { email, password } = this.state.inputs;
+		if (!this.state.isLoginMode) {
+			this.setState((oldState) => ({ isLoginMode: !oldState.isLoginMode, inputs: { email, password }, isValid: email.isValid && password.isValid }));
+			return;
+		}
+		this.setState((oldState) => ({ isLoginMode: !oldState.isLoginMode, inputs: { email, password, name: { isValid: false, value: '' } }, isValid: false }));
+	};
 
 	getFormValidity = (excludeKey: string): boolean => {
 		let isValid = true;
 		for (let key in this.state.inputs) {
-			if (key !== excludeKey) isValid = isValid && this.state.inputs[key].isValid;
+			if (key !== excludeKey && this.state.inputs[key]) isValid = isValid && this.state.inputs[key].isValid;
 		}
 		return isValid;
 	};
@@ -48,9 +62,10 @@ class Authentication extends React.Component<AuthenticationProps, Authentication
 		this.setState((oldState) => ({ inputs: { ...oldState.inputs, [id]: { value, isValid } }, isValid: formValidity && isValid }));
 	};
 
-	formSubmithandler = (event: React.FormEvent<HTMLFormElement>) => {
+	formSubmitLoginHandler = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		console.log(this.state.inputs); // sebd to the backend
+		this.context.login();
 	};
 
 	render = () => {
@@ -58,7 +73,18 @@ class Authentication extends React.Component<AuthenticationProps, Authentication
 			<Card className='authentication'>
 				<h2>Login Required</h2>
 				<hr />
-				<form onSubmit={this.formSubmithandler}>
+				<form onSubmit={this.formSubmitLoginHandler}>
+					{!this.state.isLoginMode && (
+						<Input
+							id='name'
+							element='input'
+							type='text'
+							label='Your Name'
+							validators={[VALIDATOR_REQUIRE()]}
+							errorText='Please enter a name'
+							onInput={this.inputHandler}
+						/>
+					)}
 					<Input
 						element='input'
 						id='email'
@@ -77,10 +103,11 @@ class Authentication extends React.Component<AuthenticationProps, Authentication
 						errorText='Please enter a valid password, at least 5 characters.'
 						onInput={this.inputHandler}
 					/>
+					<Button type='submit' disabled={!this.state.isValid}>
+						{this.state.isLoginMode ? 'LOGIN' : 'SIGNUP'}
+					</Button>
 				</form>
-				<Button type='submit' disabled={!this.state.isValid}>
-					LOGIN
-				</Button>
+				<Button onClick={this.switchModeHandler}>SWITCH TO {!this.state.isLoginMode ? 'LOGIN' : 'SIGNUP'}</Button>
 			</Card>
 		);
 	};

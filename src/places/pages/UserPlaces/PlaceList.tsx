@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import Button from '../../../components/FormElements/Button';
 import Card from '../../../components/UI/Card';
 import Map from '../../../components/UI/Map';
 import Modal from '../../../components/UI/Modal';
+import AuthContext, { IAuthContext } from '../../../data/auth-context';
 import { IPlaceItem } from '../../../typescript';
 
 interface PlaceListProps {
@@ -10,6 +11,7 @@ interface PlaceListProps {
 }
 
 const _renderPlaceItem = (item: IPlaceItem): JSX.Element => {
+	const ctx = useContext(AuthContext);
 	const [showMap, setShowMap] = useState(false);
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -68,10 +70,12 @@ const _renderPlaceItem = (item: IPlaceItem): JSX.Element => {
 						<Button inverse onClick={openMapHandler}>
 							VIEW ON MAP
 						</Button>
-						<Button to={`/places/${id}`}>EDIT</Button>
-						<Button danger onClick={openDeleteModalHandler}>
-							DELETE
-						</Button>
+						{ctx.isLoggedIn && <Button to={`/places/${id}`}>EDIT</Button>}
+						{ctx.isLoggedIn && (
+							<Button danger onClick={openDeleteModalHandler}>
+								DELETE
+							</Button>
+						)}
 					</div>
 				</Card>
 			</li>
