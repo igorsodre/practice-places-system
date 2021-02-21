@@ -1,10 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Redirect, Route, Switch } from 'react-router-dom';
+
 import MainNavigation from './components/Navigation/MainNavigation';
 import NewPlace from './places/pages/NewPlace';
 import UpdatePlace from './places/pages/UpdatePlace';
 import UserPlaces from './places/pages/UserPlaces';
 import Users from './users/pages/Users';
+import Authentication from './users/pages/Authentication';
+
 import './App.scss';
 
 const App = (): JSX.Element => {
@@ -17,6 +20,7 @@ const App = (): JSX.Element => {
 					<Route path='/places/new' component={NewPlace} exact />
 					<Route path='/:userId/places' component={UserPlaces} exact />
 					<Route path='/places/:placeId' component={UpdatePlace} exact />
+					<Route path='/auth' component={Authentication} exact />
 					<Redirect to='/' />
 				</Switch>
 			</main>

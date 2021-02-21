@@ -2,6 +2,7 @@ import React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Button from '../../../components/FormElements/Button';
 import Input from '../../../components/FormElements/Input';
+import Card from '../../../components/UI/Card';
 import { IPlaceItem } from '../../../typescript';
 import { VALIDATOR_MINLENGTH, VALIDATOR_REQUIRE } from '../../../util/validators';
 
@@ -24,27 +25,45 @@ class UpdatePlace extends React.Component<UpdatePlaceProps, UpdatePlaceState> {
 	place?: IPlaceItem;
 	constructor(props: UpdatePlaceProps) {
 		super(props);
-		const {
-			match: {
-				params: { placeId }
-			}
-		} = this.props;
-		this.place = DUMMY_PLACES.find((p) => p.id === placeId);
 
 		this.state = {
 			inputs: {
 				description: {
-					value: this.place?.description || '',
-					isValid: true
+					value: '',
+					isValid: false
 				},
 				title: {
-					value: this.place?.title || '',
-					isValid: true
+					value: '',
+					isValid: false
 				}
 			},
-			isValid: true
+			isValid: false
 		};
 	}
+
+	componentDidMount = () => {
+		setTimeout(() => {
+			const {
+				match: {
+					params: { placeId }
+				}
+			} = this.props;
+			this.place = DUMMY_PLACES.find((p) => p.id === placeId);
+			this.setState({
+				inputs: {
+					description: {
+						value: this.place?.description || '',
+						isValid: true
+					},
+					title: {
+						value: this.place?.title || '',
+						isValid: true
+					}
+				},
+				isValid: true
+			});
+		}, 3000);
+	};
 
 	onSubmitHandler = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -65,7 +84,14 @@ class UpdatePlace extends React.Component<UpdatePlaceProps, UpdatePlaceState> {
 	};
 
 	render = () => {
-		if (!this.place) return <div className='center'>Could not find place!</div>;
+		if (!this.place)
+			return (
+				<div className='center'>
+					<Card>
+						<h2>Could not find place!</h2>
+					</Card>
+				</div>
+			);
 		return (
 			<form className='place-form' onSubmit={this.onSubmitHandler}>
 				<Input
