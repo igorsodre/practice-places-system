@@ -1,24 +1,47 @@
 {
-	"name": "places",
-	"version": "1.0.0",
-	"description": "",
-	"main": "./src/index.ts",
-	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
-		"start": "nodemon ./src/index.ts",
-		"build": "tsc"
-	},
-	"dependencies": {
-		"body-parser": "^1.19.0",
-		"express": "^4.17.1"
-	},
-	"author": "",
-	"license": "ISC",
-	"devDependencies": {
-		"@types/express": "^4.17.11",
-		"@types/node": "^14.14.31",
-		"nodemon": "^2.0.7",
-		"ts-node": "^9.1.1",
-		"typescript": "^4.1.5"
-	}
+    "name": "places",
+    "version": "1.0.0",
+    "description": "",
+    "main": "./src/index.ts",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "nodemon ./src/index.ts",
+        "build": "tsc",
+        "lint": "eslint '*/**/*.{js,ts,tsx}' --quiet --fix"
+    },
+    "dependencies": {
+        "body-parser": "^1.19.0",
+        "express": "^4.17.1",
+        "http-status-codes": "^2.1.4",
+        "uuid": "^8.3.2"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/express": "^4.17.11",
+        "@types/node": "^14.14.31",
+        "@types/uuid": "^8.3.0",
+        "@typescript-eslint/eslint-plugin": "^4.15.2",
+        "@typescript-eslint/parser": "^4.15.2",
+        "eslint": "^7.20.0",
+        "eslint-config-prettier": "^8.0.0",
+        "eslint-plugin-prettier": "^3.3.1",
+        "husky": "^4.3.8",
+        "lint-staged": "^10.5.4",
+        "nodemon": "^2.0.7",
+        "prettier": "^2.2.1",
+        "ts-node": "^9.1.1",
+        "typescript": "^4.1.5"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "lint-staged"
+        }
+    },
+    "lint-staged": {
+        "*.{js,ts,tsx}": [
+            "eslint --fix"
+        ],
+        "*.js": "eslint --cache --fix"
+    }
 }
