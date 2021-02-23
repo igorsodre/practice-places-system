@@ -1,4 +1,7 @@
+import { ILocation } from './../typescript/index.d';
+import { getAdressLocation } from './../util/locations';
 import { RequestHandler } from 'express';
+import { validationResult } from 'express-validator';
 import { StatusCodes } from 'http-status-codes';
 import { v4 as uuidV4 } from 'uuid';
 
@@ -8,7 +11,7 @@ import { DefaultErrorResponse } from '../util/DefaultErrorResponse';
 let DUMMY_PLACES: IPlaceItem[] = [
     {
         title: 'Place One',
-        locations: { lat: 40.7484405, lng: -73.9878531 },
+        location: { lat: 40.7484405, lng: -73.9878531 },
         imageUrl:
             'https://upload.wikimedia.org/wikipedia/commons/c/c7/Empire_State_Building_from_the_Top_of_the_Rock.jpg',
         id: 'p1',
@@ -18,7 +21,7 @@ let DUMMY_PLACES: IPlaceItem[] = [
     },
     {
         title: 'Place TWO',
-        locations: { lat: 40.7484405, lng: -73.9878531 },
+        location: { lat: 40.7484405, lng: -73.9878531 },
         imageUrl:
             'https://upload.wikimedia.org/wikipedia/commons/c/c7/Empire_State_Building_from_the_Top_of_the_Rock.jpg',
         id: 'p2',
@@ -50,18 +53,30 @@ export const getPlaceById: RequestHandler = (req, res, next) => {
 interface ICreatePlaceBody {
     title: string;
     description: string;
-    coordinates: { lat: number; lng: number };
     address: string;
     creator: string;
 }
-export const createPlace: RequestHandler = (req, res, next) => {
-    const { address, title, description, coordinates, creator } = req.body as ICreatePlaceBody;
+export const createPlace: RequestHandler = async (req, res, next) => {
+    const validations = validationResult(req);
+    if (!validations.isEmpty()) {
+        return next(
+            new DefaultErrorResponse('Invalid inputs passed, please ceck your data', StatusCodes.UNPROCESSABLE_ENTITY),
+        );
+    }
+    const { address, title, description, creator } = req.body as ICreatePlaceBody;
+    let location: ILocation;
+    try {
+        location = await getAdressLocation(address);
+    } catch (err) {
+        return next(err);
+    }
+
     const newPlace: IPlaceItem = {
         id: uuidV4(),
         address,
         creator,
         description,
-        locations: coordinates,
+        location,
         title,
     };
     DUMMY_PLACES.push(newPlace);
@@ -73,6 +88,13 @@ interface IUpdatePlaceBody {
     description: string;
 }
 export const updatePlace: RequestHandler = (req, res, next) => {
+    const validations = validationResult(req);
+    if (!validations.isEmpty()) {
+        return next(
+            new DefaultErrorResponse('Invalid inputs passed, please ceck your data', StatusCodes.UNPROCESSABLE_ENTITY),
+        );
+    }
+
     const placeId = req.params.placeId;
     const { title, description } = req.body as IUpdatePlaceBody;
     const place = DUMMY_PLACES.find((p) => p.id === placeId);
@@ -87,6 +109,9 @@ export const updatePlace: RequestHandler = (req, res, next) => {
 
 export const deletePlace: RequestHandler = (req, res, next) => {
     const placeId = req.params.placeId;
+    if (!DUMMY_PLACES.some((p) => p.id === placeId)) {
+        return next(new DefaultErrorResponse('Could not find a place for the provided id.', StatusCodes.NOT_FOUND));
+    }
     DUMMY_PLACES = DUMMY_PLACES.filter((p) => p.id !== placeId);
     res.json({ data: 'OK' });
 };

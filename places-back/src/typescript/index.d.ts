@@ -1,8 +1,10 @@
 export interface IUser {
     id: string;
-    image: string;
+    image?: string;
     name: string;
-    placeCount: number;
+    placeCount?: number;
+    email: string;
+    password: string;
 }
 
 export interface IPlaceItem {
@@ -12,5 +14,10 @@ export interface IPlaceItem {
     description: string;
     address: string;
     creator: string;
-    locations: { lat: number; lng: number };
+    location: { lat: number; lng: number };
+}
+
+export interface ILocation {
+    lat: number;
+    lng: number;
 }

@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { check } from 'express-validator';
+
 import {
     createPlace,
     deletePlace,
@@ -6,15 +8,20 @@ import {
     getPlacesByUserId,
     updatePlace,
 } from '../../controllers/places-controller';
+
 const router = Router();
 
 router.get('/user/:uid', getPlacesByUserId);
 
 router.get('/:placeId', getPlaceById);
 
-router.post('/', createPlace);
+router.post(
+    '/',
+    [check('title').not().isEmpty(), check('description').isLength({ min: 5 }), check('address').notEmpty()],
+    createPlace,
+);
 
-router.patch('/:placeId', updatePlace);
+router.patch('/:placeId', [check('title').notEmpty(), check('description').isLength({ min: 5 })], updatePlace);
 
 router.delete('/:placeId', deletePlace);
 
