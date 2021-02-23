@@ -28,8 +28,6 @@ let DUMMY_PLACES: IPlaceItem[] = [
     },
 ];
 
-var teste = '';
-
 export const getPlacesByUserId: RequestHandler = (req, res, next) => {
     const uid = req.params.uid;
     const places = DUMMY_PLACES.filter((p) => p.creator === uid);

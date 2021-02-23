@@ -1,5 +1,11 @@
 import { Router } from 'express';
-import { createPlace, deletePlace, getPlaceById, getPlacesByUserId, updatePlace } from '../../controllers/places-controller';
+import {
+    createPlace,
+    deletePlace,
+    getPlaceById,
+    getPlacesByUserId,
+    updatePlace,
+} from '../../controllers/places-controller';
 const router = Router();
 
 router.get('/user/:uid', getPlacesByUserId);
