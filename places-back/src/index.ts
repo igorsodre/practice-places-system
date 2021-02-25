@@ -1,5 +1,6 @@
 import { config } from 'dotenv';
 import express from 'express';
+import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 
 import placesRoutes from './routes/places/places';
@@ -20,6 +21,13 @@ app.use(defaultNotFoundResponse);
 
 app.use(defaultErrorRequestHandler);
 
-app.listen(PORT, () => {
-    console.log(`[server]: Server is running at https://localhost:${PORT}`);
-});
+mongoose
+    .connect(process.env.DB_CONNECTION_STRING || '')
+    .then(() => {
+        app.listen(PORT, () => {
+            console.log(`[server]: Server is running at https://localhost:${PORT}`);
+        });
+    })
+    .catch((err) => {
+        console.log(err);
+    });

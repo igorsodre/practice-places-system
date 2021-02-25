@@ -2,7 +2,7 @@ import { StatusCodes } from 'http-status-codes';
 import { RequestHandler } from 'express';
 import { IUser } from '../typescript';
 import { v4 as uuidV4 } from 'uuid';
-import { DefaultErrorResponse } from '../util/DefaultErrorResponse';
+import { DefaultErrorResponse } from '../util/default-error-response';
 import { validationResult } from 'express-validator';
 const DUMMY_USERS: IUser[] = [
     {

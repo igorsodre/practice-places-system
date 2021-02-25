@@ -1,6 +1,6 @@
 import { ErrorRequestHandler, RequestHandler } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { DefaultErrorResponse } from './DefaultErrorResponse';
+import { DefaultErrorResponse } from './default-error-response';
 
 export const defaultErrorRequestHandler: ErrorRequestHandler = (error, _, res, next) => {
     if (res.headersSent) {

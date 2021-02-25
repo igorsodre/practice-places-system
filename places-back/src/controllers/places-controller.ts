@@ -1,53 +1,45 @@
-import { ILocation } from './../typescript/index.d';
-import { getAdressLocation } from './../util/locations';
 import { RequestHandler } from 'express';
 import { validationResult } from 'express-validator';
 import { StatusCodes } from 'http-status-codes';
-import { v4 as uuidV4 } from 'uuid';
+import { IPlaceItem, Place } from '../models/place';
+import { DefaultErrorResponse } from '../util/default-error-response';
+import { ILocation } from './../typescript/index.d';
+import { getAdressLocation } from './../util/locations';
 
-import { IPlaceItem } from '../typescript';
-import { DefaultErrorResponse } from '../util/DefaultErrorResponse';
-
-let DUMMY_PLACES: IPlaceItem[] = [
-    {
-        title: 'Place One',
-        location: { lat: 40.7484405, lng: -73.9878531 },
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/c/c7/Empire_State_Building_from_the_Top_of_the_Rock.jpg',
-        id: 'p1',
-        description: 'A cool building',
-        creator: 'u1',
-        address: '20 W 34th St, New York, NY 10001, United States',
-    },
-    {
-        title: 'Place TWO',
-        location: { lat: 40.7484405, lng: -73.9878531 },
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/c/c7/Empire_State_Building_from_the_Top_of_the_Rock.jpg',
-        id: 'p2',
-        description: 'A cool building',
-        creator: 'u2',
-        address: '20 W 34th St, New York, NY 10001, United States',
-    },
-];
-
-export const getPlacesByUserId: RequestHandler = (req, res, next) => {
+export const getPlacesByUserId: RequestHandler = async (req, res, next) => {
     const uid = req.params.uid;
-    const places = DUMMY_PLACES.filter((p) => p.creator === uid);
+    let places: IPlaceItem[];
+    try {
+        places = await Place.find({ creator: uid });
+    } catch {
+        return next(
+            new DefaultErrorResponse('Something went wrong, could not find places.', StatusCodes.INTERNAL_SERVER_ERROR),
+        );
+    }
     if (!places.length) {
         return next(new DefaultErrorResponse('Could not find a place for the provided user.', StatusCodes.NOT_FOUND));
     }
 
-    res.json({ data: places });
+    res.json({ data: places.map((p) => p.toObject({ getters: true })) });
 };
 
-export const getPlaceById: RequestHandler = (req, res, next) => {
+export const getPlaceById: RequestHandler = async (req, res, next) => {
     const placeId = req.params.placeId;
-    const place = DUMMY_PLACES.find((p) => p.id === placeId);
+    let place: IPlaceItem | null;
+    try {
+        place = await Place.findById(placeId);
+    } catch {
+        return next(
+            new DefaultErrorResponse(
+                'Something went wrong, could not find a place.',
+                StatusCodes.INTERNAL_SERVER_ERROR,
+            ),
+        );
+    }
     if (!place) {
         return next(new DefaultErrorResponse('Could not find a place for the provided id.', StatusCodes.NOT_FOUND));
     }
-    res.json({ data: place });
+    res.json({ data: place.toObject({ getters: true }) });
 };
 
 interface ICreatePlaceBody {
@@ -57,12 +49,15 @@ interface ICreatePlaceBody {
     creator: string;
 }
 export const createPlace: RequestHandler = async (req, res, next) => {
+    // validate inputs
     const validations = validationResult(req);
     if (!validations.isEmpty()) {
         return next(
             new DefaultErrorResponse('Invalid inputs passed, please ceck your data', StatusCodes.UNPROCESSABLE_ENTITY),
         );
     }
+
+    // get coordinates for address
     const { address, title, description, creator } = req.body as ICreatePlaceBody;
     let location: ILocation;
     try {
@@ -71,15 +66,24 @@ export const createPlace: RequestHandler = async (req, res, next) => {
         return next(err);
     }
 
-    const newPlace: IPlaceItem = {
-        id: uuidV4(),
-        address,
-        creator,
-        description,
-        location,
+    // persist
+    const newPlace = new Place(<IPlaceItem>{
         title,
-    };
-    DUMMY_PLACES.push(newPlace);
+        description,
+        address,
+        location,
+        creator,
+        imageUrl:
+            'https://upload.wikimedia.org/wikipedia/commons/c/c7/Empire_State_Building_from_the_Top_of_the_Rock.jpg',
+    });
+
+    try {
+        await newPlace.save();
+    } catch {
+        return next(
+            new DefaultErrorResponse('Creating place failed, please try again', StatusCodes.INTERNAL_SERVER_ERROR),
+        );
+    }
     res.status(StatusCodes.CREATED).json({ data: newPlace });
 };
 
@@ -87,7 +91,7 @@ interface IUpdatePlaceBody {
     title: string;
     description: string;
 }
-export const updatePlace: RequestHandler = (req, res, next) => {
+export const updatePlace: RequestHandler = async (req, res, next) => {
     const validations = validationResult(req);
     if (!validations.isEmpty()) {
         return next(
@@ -97,21 +101,42 @@ export const updatePlace: RequestHandler = (req, res, next) => {
 
     const placeId = req.params.placeId;
     const { title, description } = req.body as IUpdatePlaceBody;
-    const place = DUMMY_PLACES.find((p) => p.id === placeId);
-    const arrIndex = DUMMY_PLACES.findIndex((p) => p.id === placeId);
-    if (!place) {
+    let updatedPlace: IPlaceItem | null;
+    try {
+        updatedPlace = await Place.findById(placeId);
+    } catch {
+        return next(
+            new DefaultErrorResponse('Something went wrong, could not find place.', StatusCodes.INTERNAL_SERVER_ERROR),
+        );
+    }
+    if (!updatedPlace) {
         return next(new DefaultErrorResponse('Could not find a place for the provided id.', StatusCodes.NOT_FOUND));
     }
-    const updatedPlace = { ...place, description, title };
-    DUMMY_PLACES[arrIndex] = updatedPlace;
-    return res.json({ data: updatedPlace });
+    try {
+        updatedPlace.title = title;
+        updatedPlace.description = description;
+        await updatedPlace.save();
+    } catch {
+        return next(
+            new DefaultErrorResponse('Something went wrong, could not find place.', StatusCodes.INTERNAL_SERVER_ERROR),
+        );
+    }
+
+    return res.json({ data: updatedPlace.toObject({ getters: true }) });
 };
 
-export const deletePlace: RequestHandler = (req, res, next) => {
+export const deletePlace: RequestHandler = async (req, res, next) => {
     const placeId = req.params.placeId;
-    if (!DUMMY_PLACES.some((p) => p.id === placeId)) {
-        return next(new DefaultErrorResponse('Could not find a place for the provided id.', StatusCodes.NOT_FOUND));
+    try {
+        await Place.deleteOne({ id: placeId });
+    } catch (err) {
+        return next(
+            new DefaultErrorResponse(
+                'Something went wrong, could not delete place.',
+                StatusCodes.INTERNAL_SERVER_ERROR,
+            ),
+        );
     }
-    DUMMY_PLACES = DUMMY_PLACES.filter((p) => p.id !== placeId);
+
     res.json({ data: 'OK' });
 };

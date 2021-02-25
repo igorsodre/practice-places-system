@@ -2,7 +2,7 @@ import axios from 'axios';
 import { StatusCodes } from 'http-status-codes';
 
 import { ILocation } from './../typescript/index.d';
-import { DefaultErrorResponse } from './DefaultErrorResponse';
+import { DefaultErrorResponse } from './default-error-response';
 
 export const getAdressLocation = async (addres: string): Promise<ILocation> => {
     const API_KEY = process.env.API_KEY;
