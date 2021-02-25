@@ -1,7 +1,9 @@
 import { RequestHandler } from 'express';
 import { validationResult } from 'express-validator';
+import mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 import { IPlaceItem, Place } from '../models/place';
+import { IUser, User } from '../models/user';
 import { DefaultErrorResponse } from '../util/default-error-response';
 import { ILocation } from './../typescript/index.d';
 import { getAdressLocation } from './../util/locations';
@@ -77,9 +79,29 @@ export const createPlace: RequestHandler = async (req, res, next) => {
             'https://upload.wikimedia.org/wikipedia/commons/c/c7/Empire_State_Building_from_the_Top_of_the_Rock.jpg',
     });
 
+    let user: IUser | null;
     try {
-        await newPlace.save();
+        user = await User.findById(creator);
+        if (!user) {
+            return new DefaultErrorResponse('Something went worong, could not find user', StatusCodes.NOT_FOUND);
+        }
     } catch {
+        return new DefaultErrorResponse(
+            'Something went worong, could not find user',
+            StatusCodes.INTERNAL_SERVER_ERROR,
+        );
+    }
+
+    try {
+        const sess = await mongoose.startSession();
+        sess.startTransaction();
+        await newPlace.save({ session: sess });
+        user.places?.push(newPlace);
+        await user.save({ session: sess });
+        await sess.commitTransaction();
+    } catch (err) {
+        console.log('\n\n\n');
+        console.log(err);
         return next(
             new DefaultErrorResponse('Creating place failed, please try again', StatusCodes.INTERNAL_SERVER_ERROR),
         );
@@ -127,9 +149,29 @@ export const updatePlace: RequestHandler = async (req, res, next) => {
 
 export const deletePlace: RequestHandler = async (req, res, next) => {
     const placeId = req.params.placeId;
+    let place: IPlaceItem | null;
     try {
-        await Place.deleteOne({ id: placeId });
+        place = await Place.findById(placeId).populate('creator');
+        if (!place) {
+            return next(new DefaultErrorResponse('could not find place.', StatusCodes.NOT_FOUND));
+        }
     } catch (err) {
+        return next(
+            new DefaultErrorResponse(
+                'Something went wrong, could not delete place.',
+                StatusCodes.INTERNAL_SERVER_ERROR,
+            ),
+        );
+    }
+
+    try {
+        const sess = await mongoose.startSession();
+        sess.startTransaction();
+        await place.remove({ session: sess });
+        (place.creator as any).places.pull(place);
+        (place.creator as any).save({ session: sess });
+        await sess.commitTransaction();
+    } catch (error) {
         return next(
             new DefaultErrorResponse(
                 'Something went wrong, could not delete place.',
