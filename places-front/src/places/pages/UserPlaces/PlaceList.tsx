@@ -1,9 +1,11 @@
 import React, { useContext, useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import Button from '../../../components/FormElements/Button';
 import Card from '../../../components/UI/Card';
 import Map from '../../../components/UI/Map';
 import Modal from '../../../components/UI/Modal';
 import AuthContext, { IAuthContext } from '../../../data/auth-context';
+import { PlacesService } from '../../../services/places.service';
 import { IPlaceItem } from '../../../typescript';
 
 interface PlaceListProps {
@@ -12,20 +14,22 @@ interface PlaceListProps {
 
 const _renderPlaceItem = (item: IPlaceItem): JSX.Element => {
 	const ctx = useContext(AuthContext);
+	const history = useHistory();
 	const [showMap, setShowMap] = useState(false);
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
+	const { address, title, location: locations, imageUrl, id, description, creator } = item;
 
 	const openMapHandler = () => setShowMap(true);
 	const closeMapHandler = () => setShowMap(false);
 
 	const openDeleteModalHandler = () => setShowDeleteModal(true);
 	const closeDeleteModalHandler = () => setShowDeleteModal(false);
-	const confirmDeleteHandler = () => {
+	const confirmDeleteHandler = async () => {
 		setShowDeleteModal(false);
-		console.log('deleted the place');
+		await PlacesService.removePlace(id || '');
+		history.push('/');
 	};
 
-	const { address, title, location: locations, imageUrl, id, description } = item;
 	return (
 		<React.Fragment key={id}>
 			<Modal
@@ -70,8 +74,8 @@ const _renderPlaceItem = (item: IPlaceItem): JSX.Element => {
 						<Button inverse onClick={openMapHandler}>
 							VIEW ON MAP
 						</Button>
-						{ctx.isLoggedIn && <Button to={`/places/${id}`}>EDIT</Button>}
-						{ctx.isLoggedIn && (
+						{ctx.userId === creator && <Button to={`/places/${id}`}>EDIT</Button>}
+						{ctx.userId === creator && (
 							<Button danger onClick={openDeleteModalHandler}>
 								DELETE
 							</Button>

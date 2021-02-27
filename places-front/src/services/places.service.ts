@@ -33,4 +33,9 @@ export class PlacesService {
 		};
 		return http.patch<DefaultResponse<IPlaceItem>>(endpoint, body).then((res) => res.data.data);
 	}
+
+	static async removePlace(placeId: string) {
+		const endpoint = BASE_URL + '/api/places/' + placeId;
+		return http.delete<DefaultResponse<string>>(endpoint).then((res) => res.data.data);
+	}
 }

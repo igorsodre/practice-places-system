@@ -15,7 +15,7 @@ const NavLinks: React.FC<NavLinksProps> = (props) => {
 			</li>
 			{auth.isLoggedIn && (
 				<li>
-					<NavLink to='/u1/places' exact>
+					<NavLink to={`/${auth.userId}/places`} exact>
 						MY PLACES
 					</NavLink>
 				</li>
