@@ -1,22 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import ErrorModal from '../../../components/UI/ErrorModal';
+import LoadingSpinner from '../../../components/UI/LoadingSpinner';
+import { UsersService } from '../../../services/users.service';
 import { IUser } from '../../../typescript';
 import UsersList from './UsersList';
 import './Users.scss';
 
 interface UsersProps {}
 const Users: React.FC<UsersProps> = (props) => {
-	const USERS: IUser[] = [
-		{
-			id: 'u1',
-			image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixid=MXwxMjA3fDB8MHxzZWFyY2h8MXx8cGVyc29ufGVufDB8fDB8&ixlib=rb-1.2.1&w=1000&q=80',
-			name: 'Nome 1',
-			placeCount: 3
-		}
-	];
+	const [users, setUsers] = useState<IUser[]>([]);
+	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState('');
+
+	useEffect(() => {
+		setIsLoading(true);
+		(async () => {
+			try {
+				const result = await UsersService.getUsers();
+				setUsers(result);
+			} catch (err) {
+				console.log('\n something went wrong');
+				console.log(err);
+				setError(err.message);
+			}
+			setIsLoading(false);
+		})();
+	}, []);
+
+	const clearModalHandler = () => {
+		setError('');
+	};
+
 	return (
-		<div>
-			<UsersList items={USERS} />
-		</div>
+		<React.Fragment>
+			<ErrorModal onClear={clearModalHandler} error={error} />
+			{isLoading && (
+				<div className='center'>
+					<LoadingSpinner asOverlay={false} />
+				</div>
+			)}
+			{!isLoading && <UsersList items={users} />}
+		</React.Fragment>
 	);
 };
 

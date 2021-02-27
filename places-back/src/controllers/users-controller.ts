@@ -26,7 +26,7 @@ export const login: RequestHandler = async (req, res, next) => {
     if (!user) {
         return next(new DefaultErrorResponse('Invalid user or password', StatusCodes.UNAUTHORIZED));
     }
-    res.json({ data: 'OK' });
+    res.json({ data: user.toObject({ getters: true }) });
 };
 
 interface ISignupBody {

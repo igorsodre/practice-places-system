@@ -2,17 +2,17 @@ export interface IUser {
 	id: string;
 	image: string;
 	name: string;
-	placeCount: number;
+	places: IPlaceItem[];
 }
 
 export interface IPlaceItem {
-	id: string;
+	id?: string;
 	imageUrl: string;
 	title: string;
 	description: string;
 	address: string;
 	creator: string;
-	locations: { lat: number; lng: number };
+	location: { lat: number; lng: number };
 }
 
 export interface IValidatorResponse {

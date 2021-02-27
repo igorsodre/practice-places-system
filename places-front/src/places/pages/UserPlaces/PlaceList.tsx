@@ -25,7 +25,7 @@ const _renderPlaceItem = (item: IPlaceItem): JSX.Element => {
 		console.log('deleted the place');
 	};
 
-	const { address, title, locations, imageUrl, id, description } = item;
+	const { address, title, location: locations, imageUrl, id, description } = item;
 	return (
 		<React.Fragment key={id}>
 			<Modal

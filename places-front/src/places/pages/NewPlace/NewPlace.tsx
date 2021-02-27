@@ -2,6 +2,8 @@ import React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Button from '../../../components/FormElements/Button';
 import Input from '../../../components/FormElements/Input';
+import AuthContext from '../../../data/auth-context';
+import { PlacesService } from '../../../services/places.service';
 import { VALIDATOR_MINLENGTH, VALIDATOR_REQUIRE } from '../../../util/validators';
 import './NewPlace.scss';
 
@@ -15,9 +17,13 @@ interface NewPlaceState {
 		};
 	};
 	isValid: boolean;
+	isLoading: boolean;
+	error?: string;
 }
 
 class NewPlace extends React.Component<NewPlaceProps, NewPlaceState> {
+	static contextType = AuthContext;
+	context!: React.ContextType<typeof AuthContext>;
 	constructor(props: NewPlaceProps) {
 		super(props);
 		this.state = {
@@ -35,7 +41,8 @@ class NewPlace extends React.Component<NewPlaceProps, NewPlaceState> {
 					isValid: false
 				}
 			},
-			isValid: false
+			isValid: false,
+			isLoading: false
 		};
 	}
 
@@ -52,9 +59,16 @@ class NewPlace extends React.Component<NewPlaceProps, NewPlaceState> {
 		this.setState((oldState) => ({ inputs: { ...oldState.inputs, [id]: { value, isValid } }, isValid: formValidity && isValid }));
 	};
 
-	formSubmithandler = (event: React.FormEvent<HTMLFormElement>) => {
+	formSubmithandler = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-		console.log(this.state.inputs); // sebd to the backend
+		this.setState({ isLoading: true });
+		const { description, title, address } = this.state.inputs;
+		try {
+			/* const result = */ await PlacesService.createPlace(title.value, address.value, this.context.userId || '', description.value);
+		} catch (err) {
+			console.log(err);
+		}
+		this.setState({ isLoading: false });
 	};
 
 	render = () => {

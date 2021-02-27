@@ -7,7 +7,7 @@ import './UserPlaces.scss';
 const DUMMY_PLACES: IPlaceItem[] = [
 	{
 		title: 'Place One',
-		locations: { lat: 40.7484405, lng: -73.9878531 },
+		location: { lat: 40.7484405, lng: -73.9878531 },
 		imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Empire_State_Building_from_the_Top_of_the_Rock.jpg',
 		id: 'p1',
 		description: 'A cool building',
@@ -16,7 +16,7 @@ const DUMMY_PLACES: IPlaceItem[] = [
 	},
 	{
 		title: 'Place One',
-		locations: { lat: 40.7484405, lng: -73.9878531 },
+		location: { lat: 40.7484405, lng: -73.9878531 },
 		imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Empire_State_Building_from_the_Top_of_the_Rock.jpg',
 		id: 'p2',
 		description: 'A cool building',

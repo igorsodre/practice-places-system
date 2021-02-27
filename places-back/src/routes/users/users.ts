@@ -12,6 +12,6 @@ router.post(
     signup,
 );
 
-router.patch('/login', login);
+router.post('/login', login);
 
 export default router;

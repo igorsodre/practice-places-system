@@ -18,7 +18,7 @@ const UsersList: React.FC<UsersListProps> = (props) => {
 						</div>
 						<div className='user-item__info'>
 							<h2>{user.name}</h2>
-							<h3>{user.placeCount} Place(s)</h3>
+							<h3>{user.places.length} Place(s)</h3>
 						</div>
 					</Link>
 				</Card>
