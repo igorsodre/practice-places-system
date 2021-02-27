@@ -2,6 +2,8 @@ import React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Button from '../../../components/FormElements/Button';
 import Input from '../../../components/FormElements/Input';
+import ErrorModal from '../../../components/UI/ErrorModal';
+import LoadingSpinner from '../../../components/UI/LoadingSpinner';
 import AuthContext from '../../../data/auth-context';
 import { PlacesService } from '../../../services/places.service';
 import { VALIDATOR_MINLENGTH, VALIDATOR_REQUIRE } from '../../../util/validators';
@@ -65,44 +67,53 @@ class NewPlace extends React.Component<NewPlaceProps, NewPlaceState> {
 		const { description, title, address } = this.state.inputs;
 		try {
 			/* const result = */ await PlacesService.createPlace(title.value, address.value, this.context.userId || '', description.value);
+            this.props.history.push('/')
 		} catch (err) {
 			console.log(err);
 		}
 		this.setState({ isLoading: false });
 	};
 
+	clearError = () => {
+		this.setState({ error: '' });
+	};
+
 	render = () => {
 		return (
-			<form className='place-form' onSubmit={this.formSubmithandler}>
-				<Input
-					element='input'
-					id='title'
-					type='text'
-					label='Title'
-					errorText='Please enter a valid title.'
-					validators={[VALIDATOR_REQUIRE()]}
-					onInput={this.inputHandler}
-				/>
-				<Input
-					element='textarea'
-					id='description'
-					label='Description'
-					validators={[VALIDATOR_MINLENGTH(5)]}
-					errorText='Please enter a valid description (at least 5 characters).'
-					onInput={this.inputHandler}
-				/>
-				<Input
-					element='input'
-					id='address'
-					label='Address'
-					validators={[VALIDATOR_REQUIRE()]}
-					errorText='Please enter a valid address.'
-					onInput={this.inputHandler}
-				/>
-				<Button type='submit' disabled={!this.state.isValid}>
-					ADD PLACE
-				</Button>
-			</form>
+			<React.Fragment>
+				<ErrorModal error={this.state.error} onClear={this.clearError} />
+				<form className='place-form' onSubmit={this.formSubmithandler}>
+					{this.state.isLoading && <LoadingSpinner asOverlay />}
+					<Input
+						element='input'
+						id='title'
+						type='text'
+						label='Title'
+						errorText='Please enter a valid title.'
+						validators={[VALIDATOR_REQUIRE()]}
+						onInput={this.inputHandler}
+					/>
+					<Input
+						element='textarea'
+						id='description'
+						label='Description'
+						validators={[VALIDATOR_MINLENGTH(5)]}
+						errorText='Please enter a valid description (at least 5 characters).'
+						onInput={this.inputHandler}
+					/>
+					<Input
+						element='input'
+						id='address'
+						label='Address'
+						validators={[VALIDATOR_REQUIRE()]}
+						errorText='Please enter a valid address.'
+						onInput={this.inputHandler}
+					/>
+					<Button type='submit' disabled={!this.state.isValid}>
+						ADD PLACE
+					</Button>
+				</form>
+			</React.Fragment>
 		);
 	};
 }

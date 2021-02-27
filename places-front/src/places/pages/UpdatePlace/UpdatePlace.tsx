@@ -3,6 +3,8 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Button from '../../../components/FormElements/Button';
 import Input from '../../../components/FormElements/Input';
 import Card from '../../../components/UI/Card';
+import AuthContext from '../../../data/auth-context';
+import { PlacesService } from '../../../services/places.service';
 import { IPlaceItem } from '../../../typescript';
 import { VALIDATOR_MINLENGTH, VALIDATOR_REQUIRE } from '../../../util/validators';
 
@@ -22,6 +24,8 @@ interface UpdatePlaceState {
 	isValid: boolean;
 }
 class UpdatePlace extends React.Component<UpdatePlaceProps, UpdatePlaceState> {
+	static contextType = AuthContext;
+	context!: React.ContextType<typeof AuthContext>;
 	place?: IPlaceItem;
 	constructor(props: UpdatePlaceProps) {
 		super(props);
@@ -41,14 +45,14 @@ class UpdatePlace extends React.Component<UpdatePlaceProps, UpdatePlaceState> {
 		};
 	}
 
-	componentDidMount = () => {
-		setTimeout(() => {
-			const {
-				match: {
-					params: { placeId }
-				}
-			} = this.props;
-			this.place = DUMMY_PLACES.find((p) => p.id === placeId);
+	componentDidMount = async () => {
+		await this.retrievePlace();
+	};
+
+	retrievePlace = async () => {
+		const { placeId } = this.props.match.params;
+		try {
+			this.place = await PlacesService.getPlacesById(placeId);
 			this.setState({
 				inputs: {
 					description: {
@@ -62,12 +66,20 @@ class UpdatePlace extends React.Component<UpdatePlaceProps, UpdatePlaceState> {
 				},
 				isValid: true
 			});
-		}, 3000);
+		} catch (error) {
+			console.log(error);
+		}
 	};
 
-	onSubmitHandler = (event: React.FormEvent<HTMLFormElement>) => {
+	onSubmitHandler = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-		console.log(this.state);
+		const { placeId } = this.props.match.params;
+		const { title, description } = this.state.inputs;
+		const { userId } = this.context;
+		if (this.state.isValid) {
+			await PlacesService.updatePlace(placeId, title.value, description.value);
+			this.props.history.push(`/${userId}/places`);
+		}
 	};
 
 	getFormValidity = (excludeKey: string): boolean => {
@@ -125,24 +137,3 @@ class UpdatePlace extends React.Component<UpdatePlaceProps, UpdatePlaceState> {
 }
 
 export default withRouter(UpdatePlace);
-
-const DUMMY_PLACES: IPlaceItem[] = [
-	{
-		title: 'Place One',
-		location: { lat: 40.7484405, lng: -73.9878531 },
-		imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Empire_State_Building_from_the_Top_of_the_Rock.jpg',
-		id: 'p1',
-		description: 'A cool building',
-		creator: 'u1',
-		address: '20 W 34th St, New York, NY 10001, United States'
-	},
-	{
-		title: 'Place One',
-		location: { lat: 40.7484405, lng: -73.9878531 },
-		imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Empire_State_Building_from_the_Top_of_the_Rock.jpg',
-		id: 'p2',
-		description: 'A cool building',
-		creator: 'u2',
-		address: '20 W 34th St, New York, NY 10001, United States'
-	}
-];
