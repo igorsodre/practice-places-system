@@ -1,8 +1,14 @@
 import { ErrorRequestHandler, RequestHandler } from 'express';
+import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 import { DefaultErrorResponse } from './default-error-response';
 
-export const defaultErrorRequestHandler: ErrorRequestHandler = (error, _, res, next) => {
+export const defaultErrorRequestHandler: ErrorRequestHandler = (error, req, res, next) => {
+    if (req.file) {
+        fs.unlink(req.file.path, (err) => {
+            err && console.log(err);
+        });
+    }
     if (res.headersSent) {
         return next(error);
     }

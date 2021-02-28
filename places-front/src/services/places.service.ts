@@ -14,15 +14,22 @@ export class PlacesService {
 		return http.get<DefaultResponse<IPlaceItem>>(endpoint).then((res) => res.data.data);
 	}
 
-	static async createPlace(title: string, address: string, creator: string, description: string) {
+	static async createPlace(title: string, address: string, creator: string, description: string, image: File) {
 		const endpoint = BASE_URL + '/api/places/';
-		const body = {
-			title,
-			address,
-			creator,
-			description
-		};
-		return http.post<DefaultResponse<IPlaceItem>>(endpoint, body).then((res) => res.data.data);
+		const form = new FormData();
+		form.append('title', title);
+		form.append('address', address);
+		form.append('creator', creator);
+		form.append('description', description);
+		form.append('image', image);
+
+		return http
+			.post<DefaultResponse<IPlaceItem>>(endpoint, form, {
+				headers: {
+					'Content-Type': 'multipart/form-data;'
+				}
+			})
+			.then((res) => res.data.data);
 	}
 
 	static async updatePlace(placeId: string, title: string, description: string) {

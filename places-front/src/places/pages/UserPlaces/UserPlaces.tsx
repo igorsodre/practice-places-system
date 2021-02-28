@@ -13,9 +13,13 @@ const UserPlaces: React.FC<UserPlacesProps> = (props) => {
 	const { userId } = useParams<UserPlaceRouteParams>();
 	const [loadedPlaces, setLoadedPlaces] = useState<IPlaceItem[]>([]);
 	useEffect(() => {
-		PlacesService.getPlacesByUser(userId).then((res) => {
-			setLoadedPlaces(res);
-		});
+		PlacesService.getPlacesByUser(userId)
+			.then((res) => {
+				setLoadedPlaces(res);
+			})
+			.catch(() => {
+				setLoadedPlaces([]);
+			});
 	}, [userId]);
 	return <PlaceList items={loadedPlaces} />;
 };

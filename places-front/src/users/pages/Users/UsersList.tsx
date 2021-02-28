@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import Avatar from '../../../components/UI/Avatar';
 import Card from '../../../components/UI/Card';
+import { BASE_URL } from '../../../data/constants';
 import { IUser } from '../../../typescript';
 
 interface UsersListProps {
@@ -14,7 +15,7 @@ const UsersList: React.FC<UsersListProps> = (props) => {
 				<Card className='user-item__content'>
 					<Link to={`/${user.id}/places`}>
 						<div className='user-item__image'>
-							<Avatar alt={user.name} image={user.image} />
+							<Avatar alt={user.name} image={BASE_URL + '/' + user.image} />
 						</div>
 						<div className='user-item__info'>
 							<h2>{user.name}</h2>

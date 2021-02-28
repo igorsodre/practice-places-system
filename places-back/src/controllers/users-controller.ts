@@ -43,6 +43,7 @@ export const signup: RequestHandler = async (req, res, next) => {
     }
 
     const { password, name, email } = req.body as ISignupBody;
+
     try {
         const alreadyExists = await User.findOne({ email });
         if (alreadyExists) {
@@ -60,8 +61,7 @@ export const signup: RequestHandler = async (req, res, next) => {
             email,
             name,
             password,
-            image:
-                'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixid=MXwxMjA3fDB8MHxzZWFyY2h8MXx8cGVyc29ufGVufDB8fDB8&ixlib=rb-1.2.1&w=1000&q=80',
+            image: req.file.path,
             places: [] as unknown[],
         });
         await newUser.save();

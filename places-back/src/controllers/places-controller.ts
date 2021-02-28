@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express';
+import fs from 'fs';
 import { validationResult } from 'express-validator';
 import mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
@@ -61,6 +62,7 @@ export const createPlace: RequestHandler = async (req, res, next) => {
 
     // get coordinates for address
     const { address, title, description, creator } = req.body as ICreatePlaceBody;
+    const { path } = req.file;
     let location: ILocation;
     try {
         location = await getAdressLocation(address);
@@ -75,8 +77,7 @@ export const createPlace: RequestHandler = async (req, res, next) => {
         address,
         location,
         creator,
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/c/c7/Empire_State_Building_from_the_Top_of_the_Rock.jpg',
+        imageUrl: path,
     });
 
     let user: IUser | null;
@@ -164,6 +165,8 @@ export const deletePlace: RequestHandler = async (req, res, next) => {
         );
     }
 
+    const imagePath = String(place.imageUrl);
+
     try {
         const sess = await mongoose.startSession();
         sess.startTransaction();
@@ -179,6 +182,10 @@ export const deletePlace: RequestHandler = async (req, res, next) => {
             ),
         );
     }
+
+    fs.unlink(imagePath, (err) => {
+        err && console.log(err);
+    });
 
     res.json({ data: 'OK' });
 };

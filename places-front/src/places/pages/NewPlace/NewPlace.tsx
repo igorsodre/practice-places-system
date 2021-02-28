@@ -1,6 +1,7 @@
 import React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Button from '../../../components/FormElements/Button';
+import ImageUpload from '../../../components/FormElements/ImageUpload';
 import Input from '../../../components/FormElements/Input';
 import ErrorModal from '../../../components/UI/ErrorModal';
 import LoadingSpinner from '../../../components/UI/LoadingSpinner';
@@ -14,7 +15,7 @@ interface NewPlaceProps extends RouteComponentProps<RouteProps, {}, {}> {}
 interface NewPlaceState {
 	inputs: {
 		[key: string]: {
-			value: string;
+			value: string | Nullable<File>;
 			isValid: boolean;
 		};
 	};
@@ -41,6 +42,10 @@ class NewPlace extends React.Component<NewPlaceProps, NewPlaceState> {
 				address: {
 					value: '',
 					isValid: false
+				},
+				image: {
+					value: null,
+					isValid: false
 				}
 			},
 			isValid: false,
@@ -56,7 +61,7 @@ class NewPlace extends React.Component<NewPlaceProps, NewPlaceState> {
 		return isValid;
 	};
 
-	inputHandler = (id: string, value: string, isValid: boolean) => {
+	inputHandler = (id: string, value: any, isValid: boolean) => {
 		const formValidity = this.getFormValidity(id);
 		this.setState((oldState) => ({ inputs: { ...oldState.inputs, [id]: { value, isValid } }, isValid: formValidity && isValid }));
 	};
@@ -64,10 +69,10 @@ class NewPlace extends React.Component<NewPlaceProps, NewPlaceState> {
 	formSubmithandler = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		this.setState({ isLoading: true });
-		const { description, title, address } = this.state.inputs;
+		const { description, title, address, image } = this.state.inputs;
 		try {
-			/* const result = */ await PlacesService.createPlace(title.value, address.value, this.context.userId || '', description.value);
-            this.props.history.push('/')
+			await PlacesService.createPlace(String(title.value), String(address.value), String(this.context.userId), String(description.value), image.value as File);
+			this.props.history.push('/');
 		} catch (err) {
 			console.log(err);
 		}
@@ -109,6 +114,7 @@ class NewPlace extends React.Component<NewPlaceProps, NewPlaceState> {
 						errorText='Please enter a valid address.'
 						onInput={this.inputHandler}
 					/>
+					<ImageUpload id='image' center onInput={this.inputHandler} errorText='Plase provide an image.' />
 					<Button type='submit' disabled={!this.state.isValid}>
 						ADD PLACE
 					</Button>
