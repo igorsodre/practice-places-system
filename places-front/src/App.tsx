@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Redirect, Route, Switch } from 'react-router-dom';
 
 import MainNavigation from './components/Navigation/MainNavigation';
@@ -11,50 +11,80 @@ import Authentication from './users/pages/Authentication';
 import './App.scss';
 import AuthContext from './data/auth-context';
 
+let activeTimer: NodeJS.Timeout;
 const App = (): JSX.Element => {
-	const [isLoggedIn, setIsLoggedIn] = useState(false);
-	const [userId, setUserId] = useState<string>();
+  const [token, setToken] = useState<Nullable<string>>(null);
+  const [expireDate, setExpireDate] = useState<Nullable<string>>();
+  const [userId, setUserId] = useState<string>();
 
-	const login = useCallback((userId?: string) => {
-		setIsLoggedIn(true);
-		setUserId(userId);
-	}, []);
+  const login = useCallback((userId?: string, token?: string, expirationDate?: string) => {
+    localStorage.setItem('token', token || '');
+    localStorage.setItem('userId', userId || '');
+    const tokenExpirationDate = expirationDate || new Date(new Date().getTime() + 1000 * 60 * 60).toISOString();
+    localStorage.setItem('tokenExpirationDate', tokenExpirationDate);
 
-	const logout = useCallback(() => {
-		setIsLoggedIn(false);
-		setUserId(undefined);
-	}, []);
+    setExpireDate(tokenExpirationDate);
+    setToken(token);
+    setUserId(userId);
+  }, []);
 
-	let routes: JSX.Element;
-	if (!isLoggedIn) {
-		routes = (
-			<Switch>
-				<Route path='/' component={Users} exact />
-				<Route path='/:userId/places' component={UserPlaces} exact />
-				<Route path='/auth' component={Authentication} exact />
-				<Redirect to='/auth' />
-			</Switch>
-		);
-	} else {
-		routes = (
-			<Switch>
-				<Route path='/' component={Users} exact />
-				<Route path='/places/new' component={NewPlace} exact />
-				<Route path='/places/:placeId' component={UpdatePlace} exact />
-				<Route path='/:userId/places' component={UserPlaces} exact />
-				<Redirect to='/' />
-			</Switch>
-		);
-	}
+  const logout = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('tokenExpirationDate');
+    setToken(null);
+    setUserId(undefined);
+    setExpireDate(undefined);
+  }, []);
 
-	return (
-		<AuthContext.Provider value={{ isLoggedIn, login, logout, userId }}>
-			<Router>
-				<MainNavigation />
-				<main>{routes}</main>
-			</Router>
-		</AuthContext.Provider>
-	);
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+    const storedUserId = localStorage.getItem('userId');
+    const tokenExpirationDate = localStorage.getItem('tokenExpirationDate');
+    if (storedToken && storedUserId && tokenExpirationDate && new Date(tokenExpirationDate) > new Date()) {
+      login(storedUserId, storedToken, tokenExpirationDate);
+    }
+  }, [login]);
+
+  useEffect(() => {
+    if (token && expireDate) {
+      const remaningTime = new Date(expireDate).getTime() - new Date().getTime();
+      activeTimer = setTimeout(logout, remaningTime);
+    } else {
+      clearTimeout(activeTimer);
+    }
+  }, [token, expireDate, logout]);
+
+  let routes: JSX.Element;
+  if (!token) {
+    routes = (
+      <Switch>
+        <Route path="/" component={Users} exact />
+        <Route path="/:userId/places" component={UserPlaces} exact />
+        <Route path="/auth" component={Authentication} exact />
+        <Redirect to="/auth" />
+      </Switch>
+    );
+  } else {
+    routes = (
+      <Switch>
+        <Route path="/" component={Users} exact />
+        <Route path="/places/new" component={NewPlace} exact />
+        <Route path="/places/:placeId" component={UpdatePlace} exact />
+        <Route path="/:userId/places" component={UserPlaces} exact />
+        <Redirect to="/" />
+      </Switch>
+    );
+  }
+
+  return (
+    <AuthContext.Provider value={{ isLoggedIn: Boolean(token), login, logout, userId, token }}>
+      <Router>
+        <MainNavigation />
+        <main>{routes}</main>
+      </Router>
+    </AuthContext.Provider>
+  );
 };
 
 export default App;

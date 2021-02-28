@@ -41,10 +41,6 @@ class Authentication extends React.Component<AuthenticationProps, Authentication
           value: '',
           isValid: false,
         },
-        image: {
-          value: null,
-          isValid: false,
-        },
       },
       isValid: false,
       isLoginMode: true,
@@ -90,7 +86,7 @@ class Authentication extends React.Component<AuthenticationProps, Authentication
     try {
       const { email, password } = this.state.inputs;
       const result = await AuthService.login(String(email.value), String(password.value));
-      this.context.login(result.id);
+      this.context.login(result.userId, result.token);
     } catch (err) {
       this.setState({ error: err.message || 'something went wrong, please try again', isLoading: false });
     }
@@ -107,7 +103,7 @@ class Authentication extends React.Component<AuthenticationProps, Authentication
         String(name.value),
         image.value as File,
       );
-      this.context.login(result.id);
+      this.context.login(result.userId, result.token);
     } catch (err) {
       this.setState({ error: err.message || 'something went wrong, please try again', isLoading: false });
     }

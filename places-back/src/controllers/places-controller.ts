@@ -127,14 +127,21 @@ export const updatePlace: RequestHandler = async (req, res, next) => {
     let updatedPlace: IPlaceItem | null;
     try {
         updatedPlace = await Place.findById(placeId);
+        if (!updatedPlace) {
+            return next(new DefaultErrorResponse('Could not find a place for the provided id.', StatusCodes.NOT_FOUND));
+        }
     } catch {
         return next(
             new DefaultErrorResponse('Something went wrong, could not find place.', StatusCodes.INTERNAL_SERVER_ERROR),
         );
     }
-    if (!updatedPlace) {
-        return next(new DefaultErrorResponse('Could not find a place for the provided id.', StatusCodes.NOT_FOUND));
+
+    if (updatedPlace.creator.toString() !== req.userData?.userId) {
+        return next(
+            new DefaultErrorResponse('User not allowed to modify/remove this resource.', StatusCodes.UNAUTHORIZED),
+        );
     }
+
     try {
         updatedPlace.title = title;
         updatedPlace.description = description;
@@ -162,6 +169,12 @@ export const deletePlace: RequestHandler = async (req, res, next) => {
                 'Something went wrong, could not delete place.',
                 StatusCodes.INTERNAL_SERVER_ERROR,
             ),
+        );
+    }
+
+    if ((place.creator as any).id !== req.userData?.userId) {
+        return next(
+            new DefaultErrorResponse('User not allowed to modify/remove this resource.', StatusCodes.UNAUTHORIZED),
         );
     }
 

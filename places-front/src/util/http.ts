@@ -1,7 +1,7 @@
 import http, { AxiosError } from 'axios';
 
 export type DefaultResponse<T> = {
-	data: T;
+  data: T;
 };
 
 /**
@@ -12,17 +12,30 @@ export type DefaultResponse<T> = {
  * @param axios
  */
 http.interceptors.response.use(undefined, function (error: AxiosError) {
-	(error as any).originalMessage = error.message;
-	Object.defineProperty(error, 'message', {
-		get: function () {
-			if (!error.response) {
-				return (error as any).originalMessage;
-			}
-			if (typeof error.response.data.message === 'string') return error.response.data.message;
-			return JSON.stringify(error.response.data.message);
-		}
-	});
-	return Promise.reject(error);
+  (error as any).originalMessage = error.message;
+  Object.defineProperty(error, 'message', {
+    get: function () {
+      if (!error.response) {
+        return (error as any).originalMessage;
+      }
+      if (typeof error.response.data.message === 'string') return error.response.data.message;
+      return JSON.stringify(error.response.data.message);
+    },
+  });
+  return Promise.reject(error);
 });
+
+http.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (Boolean(token)) {
+      config.headers.authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
 
 export default http;

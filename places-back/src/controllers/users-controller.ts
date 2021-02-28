@@ -1,4 +1,6 @@
 import { RequestHandler } from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
 import { StatusCodes } from 'http-status-codes';
 import { DefaultErrorResponse } from '../util/default-error-response';
@@ -22,11 +24,36 @@ interface ILoginBody {
 }
 export const login: RequestHandler = async (req, res, next) => {
     const { email, password } = req.body as ILoginBody;
-    const user = await User.findOne({ email, password });
-    if (!user) {
-        return next(new DefaultErrorResponse('Invalid user or password', StatusCodes.UNAUTHORIZED));
+    let user: Nullable<IUser>;
+    try {
+        user = await User.findOne({ email });
+        if (!user) {
+            return next(new DefaultErrorResponse('Invalid user or password', StatusCodes.FORBIDDEN));
+        }
+
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        if (!isValidPassword) {
+            return next(new DefaultErrorResponse('Invalid user or password', StatusCodes.FORBIDDEN));
+        }
+    } catch (err) {
+        return next(
+            new DefaultErrorResponse('Something went wrong, could not login', StatusCodes.INTERNAL_SERVER_ERROR),
+        );
     }
-    res.json({ data: user.toObject({ getters: true }) });
+
+    const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        process.env.JWT_SECRET || 'NOT_FOUND_SECRET_KJDHSAHJSDA',
+        { expiresIn: '1h' },
+    );
+
+    const responseData = {
+        userId: user._id,
+        email: user.email,
+        token,
+    };
+
+    res.json({ data: responseData });
 };
 
 interface ISignupBody {
@@ -57,10 +84,11 @@ export const signup: RequestHandler = async (req, res, next) => {
 
     let newUser: IUser;
     try {
+        const hashedPassword = await bcrypt.hash(password, 12);
         newUser = new User(<IUser>{
             email,
             name,
-            password,
+            password: hashedPassword,
             image: req.file.path,
             places: [] as unknown[],
         });
@@ -71,5 +99,17 @@ export const signup: RequestHandler = async (req, res, next) => {
         );
     }
 
-    res.status(StatusCodes.CREATED).json({ data: newUser.toObject({ getters: true }) });
+    const token = jwt.sign(
+        { userId: newUser.id, email: newUser.email } as IAppTokenFormat,
+        process.env.JWT_SECRET || 'NOT_FOUND_SECRET_KJDHSAHJSDA',
+        { expiresIn: '1h' },
+    );
+
+    const responseData = {
+        userId: newUser._id,
+        email: newUser.email,
+        token,
+    };
+
+    res.status(StatusCodes.CREATED).json({ data: responseData });
 };

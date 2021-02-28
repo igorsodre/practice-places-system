@@ -1,3 +1,4 @@
+import { preventUnauthenticated } from './../../util/check-auth';
 import { Router } from 'express';
 import { check } from 'express-validator';
 import {
@@ -15,6 +16,8 @@ router.get('/user/:uid', getPlacesByUserId);
 
 router.get('/:placeId', getPlaceById);
 
+// Restricted routes
+router.use(preventUnauthenticated);
 router.post(
     '/',
     fileUpload.single('image'),
