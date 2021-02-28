@@ -61,7 +61,8 @@ export const createPlace: RequestHandler = async (req, res, next) => {
     }
 
     // get coordinates for address
-    const { address, title, description, creator } = req.body as ICreatePlaceBody;
+    const { address, title, description } = req.body as ICreatePlaceBody;
+    const { userId: creator } = req.userData ?? {};
     const { path } = req.file;
     let location: ILocation;
     try {

@@ -14,12 +14,11 @@ export class PlacesService {
     return http.get<DefaultResponse<IPlaceItem>>(endpoint).then((res) => res.data.data);
   }
 
-  static async createPlace(title: string, address: string, creator: string, description: string, image: File) {
+  static async createPlace(title: string, address: string, description: string, image: File) {
     const endpoint = BASE_URL + '/api/places/';
     const form = new FormData();
     form.append('title', title);
     form.append('address', address);
-    form.append('creator', creator);
     form.append('description', description);
     form.append('image', image);
 
